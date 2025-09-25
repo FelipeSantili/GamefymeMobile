@@ -1,3 +1,4 @@
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,16 +9,16 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
+# URL da API - /api/usuarios/cadastro/
 class CadastroAPIView(APIView):
+    permission_classes = [AllowAny] 
     def post(self, request):
         nome = request.data.get("nmusuario")
         email = request.data.get("emailusuario")
         senha = request.data.get("senha")
         confsenha = request.data.get("confsenha")
-        dt_nascimento = request.data.get("dtnascimento")
 
-        if not all([nome, email, senha, confsenha, dt_nascimento]):
+        if not all([nome, email, senha, confsenha]):
             return Response({"erro": "Preencha todos os campos."},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -35,19 +36,17 @@ class CadastroAPIView(APIView):
                     nmusuario=nome,
                     emailusuario=email,
                     password=make_password(senha),
-                    dtnascimento=dt_nascimento,
                     flsituacao=True,
                     nivelusuario=1,
                     expusuario=0,
                     tipousuario=TipoUsuario.COMUM
                 )
 
-                # 🔑 Gerar tokens JWT
                 refresh = RefreshToken.for_user(usuario)
                 return Response({
                     "message": "Usuário cadastrado com sucesso!",
                     "user": {
-                        "id": usuario.id,
+                        "id": usuario.idusuario,
                         "nome": usuario.nmusuario,
                         "email": usuario.emailusuario,
                     },
@@ -64,7 +63,7 @@ class CadastroAPIView(APIView):
             return Response({"erro": f"Erro inesperado: {str(e)}"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            
+# URL da API - /api/usuarios/login/     
 class LoginAPIView(APIView):
     def post(self, request):
         email = request.data.get("emailusuario")
@@ -84,7 +83,6 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # cria ou pega token
         token, _ = Token.objects.get_or_create(user=usuario)
 
         return Response(

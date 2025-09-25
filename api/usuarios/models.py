@@ -26,7 +26,6 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     nmusuario = models.CharField(max_length=50)
     password = models.CharField(max_length=128, null=False, blank=True)
     emailusuario = models.EmailField(max_length=254, unique=True)
-    dtnascimento = models.DateField()
     flsituacao = models.BooleanField(default=True)
     nivelusuario = models.IntegerField(default=1)
     expusuario = models.SmallIntegerField(default=0)

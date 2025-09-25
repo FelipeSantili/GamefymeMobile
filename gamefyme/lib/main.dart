@@ -344,8 +344,7 @@ class _RegisterPageState extends State<RegisterPage> {
           "nmusuario": _nomeController.text,
           "emailusuario": _emailController.text,
           "senha": _senhaController.text,
-          "confsenha": _confirmarSenhaController.text,
-          "dtnascimento": _dataNascimentoController.text,
+          "confsenha": _confirmarSenhaController.text
         }),
       );
 

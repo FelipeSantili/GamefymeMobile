@@ -8,5 +8,5 @@ app_name = "usuarios"
 urlpatterns = [
     path("cadastro/", CadastroAPIView.as_view(), name="cadastro"),
     path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

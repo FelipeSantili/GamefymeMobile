@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'usuarios',
+    'atividades',
+    'conquistas',
+    'desafios',
+    'drf_yasg',
 ]
 
 REST_FRAMEWORK = {
@@ -49,6 +53,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+     # Tempo de vida do token de acesso (curto)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15), 
+    
+    # Tempo de vida do token de renovação (longo)
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "USER_ID_FIELD": "idusuario",
+    "USER_ID_CLAIM": "user_id",
 }
 
 MIDDLEWARE = [
