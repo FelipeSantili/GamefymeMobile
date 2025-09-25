@@ -29,7 +29,14 @@ class Atividade(models.Model):
     dtatividaderealizada = models.DateTimeField(null=True, blank=True)
     tpestimado = models.IntegerField()
     expatividade = models.SmallIntegerField(default=0)
-    
+
+    class Meta:
+        db_table = 'atividades'  # garante o nome correto da tabela
+
+    def __str__(self):
+        return self.nmatividade
+
+
 class AtividadeConcluidas(models.Model):
     idatividade_concluida = models.AutoField(primary_key=True)
     idusuario = models.ForeignKey(
@@ -49,9 +56,3 @@ class AtividadeConcluidas(models.Model):
 
     def __str__(self):
         return f'Usuário {self.idusuario_id} - Atividade {self.idatividade_id}'
-
-    class Meta:
-        db_table = 'atividades'
-
-    def __str__(self):
-        return self.nmatividade

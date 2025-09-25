@@ -1,4 +1,7 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Atividade
 from .serializers import AtividadeSerializer
 
@@ -29,24 +32,38 @@ def calcular_experiencia(peso: str, tempo_estimado: int) -> int:
 
     experiencia = round(exp_base * multiplicador_peso * multiplicador_tempo)
     
-    # Garante que o valor final esteja entre 50 e 500
     return max(50, min(experiencia, 500))
 
-# ViewSet para a API de Atividades
+
 class AtividadeViewSet(viewsets.ModelViewSet):
     serializer_class = AtividadeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Atividade.objects.filter(idusuario=self.request.user)
+        user = self.request.user
+        return Atividade.objects.filter(idusuario=user)
 
     def perform_create(self, serializer):
+        # define o usuário logado como o dono da atividade
+        serializer.save(idusuario=self.request.user)
+
+    # A rota será /api/atividades/{pk}/realizar/
+    @action(detail=True, methods=['post'])
+    def realizar(self, request, pk=None):
         """
-        Calcula a experiência antes de salvar a nova atividade.
+        Marca uma atividade como realizada.
         """
-        peso = serializer.validated_data.get('peso')
-        tempo_estimado = serializer.validated_data.get('tpestimado')
-        
-        exp_calculada = calcular_experiencia(peso, tempo_estimado)
-        
-        serializer.save(idusuario=self.request.user, expatividade=exp_calculada)
+        try:
+            atividade = self.get_object()
+            # Adicione sua lógica para concluir a atividade aqui
+            # Ex: atividade.situacao = 'Concluída'
+            #     atividade.save()
+            #     request.user.expusuario += atividade.expatividade
+            #     request.user.save()
+            
+            # Por enquanto, vamos apenas retornar sucesso
+            return Response({'status': 'atividade realizada'}, status=status.HTTP_200_OK)
+        except Atividade.DoesNotExist:
+            return Response({'erro': 'Atividade não encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,12 +1,14 @@
 from django.urls import path
-from .views import CadastroAPIView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
-
-app_name = "usuarios"
+from .views import CadastroAPIView, LoginAPIView, UsuarioDetailView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
-    path("cadastro/", CadastroAPIView.as_view(), name="cadastro"),
-    path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('cadastro/', CadastroAPIView.as_view(), name='cadastro'),
+    path('login/', LoginAPIView.as_view(), name='login'),
+    
+    # ADICIONE ESTA ROTA
+    path('me/', UsuarioDetailView.as_view(), name='usuario-detail'),
 ]

@@ -1,4 +1,4 @@
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,8 +6,8 @@ from django.db import IntegrityError, transaction
 from django.contrib.auth.hashers import make_password
 from .models import Usuario, TipoUsuario
 from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UsuarioSerializer
 
 # URL da API - /api/usuarios/cadastro/
 class CadastroAPIView(APIView):
@@ -63,19 +63,24 @@ class CadastroAPIView(APIView):
             return Response({"erro": f"Erro inesperado: {str(e)}"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-# URL da API - /api/usuarios/login/     
+# URL da API - /api/usuarios/login/     
 class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         email = request.data.get("emailusuario")
-        senha = request.data.get("senha")
+        # CORREÇÃO 1: Ler "password" da requisição, em vez de "senha"
+        password = request.data.get("password")
 
-        if not email or not senha:
+        # CORREÇÃO 2: Verificar a variável 'password'
+        if not email or not password:
             return Response(
                 {"erro": "Email e senha são obrigatórios."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        usuario = authenticate(request, emailusuario=email, password=senha)
+        # A função authenticate espera o argumento 'password'
+        usuario = authenticate(request, emailusuario=email, password=password)
 
         if usuario is None:
             return Response(
@@ -83,14 +88,26 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        token, _ = Token.objects.get_or_create(user=usuario)
+        # CORREÇÃO 3: Gerar tokens JWT, para ser consistente com o cadastro e o front-end
+        refresh = RefreshToken.for_user(usuario)
 
         return Response(
             {
-                "id": usuario.idusuario,
-                "nmusuario": usuario.nmusuario,
-                "emailusuario": usuario.emailusuario,
-                "token": token.key
+                "message": "Login bem-sucedido!",
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
             },
             status=status.HTTP_200_OK
         )
+        
+class UsuarioDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Retorna os dados detalhados do usuário autenticado.
+        """
+        serializer = UsuarioSerializer(request.user)
+        return Response(serializer.data)
