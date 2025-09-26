@@ -152,6 +152,7 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
                     : const Text(
                         'CADASTRAR',
                         style: TextStyle(
+                          fontFamily: 'Jersey 10', // Adicione esta linha
                           color: AppColors.fundoEscuro,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -191,9 +192,10 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(color: AppColors.branco),
-      decoration: InputDecoration(
+      style: const TextStyle(color: AppColors.branco, fontFamily: 'Jersey 10'),
+        decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(fontFamily: 'Jersey 10'),
         suffixText: suffixText,
         alignLabelWithHint: true,
       ),

@@ -251,10 +251,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: _carregarDados,
-                  child: const Text('Tentar Novamente'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxoClaro,
                   ),
+                  child: const Text('Tentar Novamente'),
                 ),
               ],
             ),
@@ -331,8 +331,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Text(
             text,
             style: const TextStyle(
-              color: AppColors.branco,
               fontFamily: 'Jersey 10',
+              color: AppColors.branco,
             ),
           ),
         ),
@@ -461,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          ..._desafios.map((d) => _buildDesafioCard(d)).toList(),
+          ..._desafios.map((d) => _buildDesafioCard(d)),
           const SizedBox(height: 16),
           _buildAtividadesSection(atividades),
         ],
@@ -538,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           TextField(
             onChanged: (value) => setState(() => _searchText = value),
-            style: const TextStyle(color: AppColors.branco),
+            style: const TextStyle(color: AppColors.branco, fontFamily: 'Jersey 10'),
             decoration: InputDecoration(
               hintText: "Nome da atividade",
               hintStyle: const TextStyle(color: AppColors.cinzaSub),

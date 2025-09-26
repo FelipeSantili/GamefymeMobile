@@ -58,6 +58,7 @@ class UserLevelAvatar extends StatelessWidget {
               child: Text(
                 user.nivel.toString(),
                 style: const TextStyle(
+                  fontFamily: 'Jersey 10',
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

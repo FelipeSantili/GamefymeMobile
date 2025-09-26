@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'config/app_colors.dart';
 import 'services/api_service.dart';
 import 'models/models.dart';
-import 'widgets/user_level_avatar.dart'; // Importa o novo widget
+import 'widgets/user_level_avatar.dart';
 
 // Enum para gerenciar os estados da tela
 enum ScreenState { loading, loaded, error }
@@ -18,13 +18,13 @@ class RealizarAtividadeScreen extends StatefulWidget {
       _RealizarAtividadeScreenState();
 }
 
-class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
-    with TickerProviderStateMixin {
+class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
   final ApiService _apiService = ApiService();
+  final TextEditingController noteController = TextEditingController();
 
   ScreenState _screenState = ScreenState.loading;
   Atividade? _atividade;
-  Usuario? _usuario; // Adicionado para obter os dados do usuário
+  Usuario? _usuario;
 
   Timer? _timer;
   Duration _duration = Duration.zero;
@@ -41,6 +41,7 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
   @override
   void dispose() {
     _timer?.cancel();
+    noteController.dispose();
     super.dispose();
   }
 
@@ -49,7 +50,8 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
     setState(() => _screenState = ScreenState.loading);
 
     try {
-      final atividadeResult = await _apiService.fetchAtividade(widget.atividadeId);
+      final atividadeResult =
+          await _apiService.fetchAtividade(widget.atividadeId);
       final usuarioResult = await _apiService.fetchUsuario();
 
       if (!mounted) return;
@@ -105,6 +107,7 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
         SnackBar(
           content: Text(
             '"${_atividade!.nome}" realizada (+${_atividade!.xp} XP)!',
+            style: const TextStyle(fontFamily: 'Jersey 10', fontSize: 16),
           ),
           backgroundColor: Colors.green,
         ),
@@ -113,7 +116,8 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Não foi possível realizar a atividade.'),
+          content: Text('Não foi possível realizar a atividade.',
+              style: TextStyle(fontFamily: 'Jersey 10', fontSize: 16)),
           backgroundColor: Colors.red,
         ),
       );
@@ -122,29 +126,36 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
 
   int get dificuldadeMoedas {
     switch (_atividade?.dificuldade) {
-      case 'muito_facil': return 1;
-      case 'facil': return 2;
-      case 'medio': return 3;
-      case 'dificil': return 4;
-      case 'muito_dificil': return 5;
-      default: return 0;
+      case 'muito_facil':
+        return 1;
+      case 'facil':
+        return 2;
+      case 'medio':
+        return 3;
+      case 'dificil':
+        return 4;
+      case 'muito_dificil':
+        return 5;
+      default:
+        return 0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.fundoCard,
+      backgroundColor: AppColors.fundoEscuro,
       appBar: AppBar(
-        title: Text(
-          _atividade?.nome.toUpperCase() ?? 'CARREGANDO...',
-          style: const TextStyle(fontFamily: 'Jersey 10', fontSize: 24),
-        ),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.roxoHeader,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        title: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
         ),
         actions: [
           if (_usuario != null)
@@ -161,104 +172,147 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
   Widget _buildBody() {
     switch (_screenState) {
       case ScreenState.loading:
-        return const Center(child: CircularProgressIndicator(color: AppColors.verdeLima));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.verdeLima));
       case ScreenState.error:
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Erro ao carregar a atividade.', style: TextStyle(color: Colors.white)),
+              const Text('Erro ao carregar a atividade.',
+                  style:
+                      TextStyle(color: Colors.white, fontFamily: 'Jersey 10')),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _carregarDadosAtividade,
-                child: const Text('Tentar Novamente'),
+                child: const Text('Tentar Novamente',
+                    style: TextStyle(fontFamily: 'Jersey 10')),
               ),
             ],
           ),
         );
       case ScreenState.loaded:
-        return Column(
-          children: [
-            _buildStreakCard(),
-            Expanded(child: _buildTimerSection()),
-            _buildFooter(),
-          ],
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildActivityStreakSection(context),
+                const SizedBox(height: 16),
+                _buildTimerSection(context),
+                const SizedBox(height: 16),
+                _buildTaskSection(context),
+                const SizedBox(height: 16),
+                _buildButtonsSection(context),
+              ],
+            ),
+          ),
         );
     }
   }
 
-  Widget _buildStreakCard() {
+  Widget _buildActivityStreakSection(BuildContext context) {
     return Container(
-      color: AppColors.fundoCard,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.roxoHeader,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                "Dias contínuos de atividades",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.fundoCard,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Dias continuos de atividades',
+            style: TextStyle(
+              fontFamily: 'Jersey 10',
+              fontSize: 20,
+              color: Colors.white,
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _usuario!.streakData.map((dia) => Column(
-                children: [
-                  Text(dia.diaSemana, style: const TextStyle(fontSize: 12, color: AppColors.cinzaSub)),
-                  const SizedBox(height: 4),
-                  Image.asset("assets/images/${dia.imagem}", width: 24),
-                ],
-              )).toList(),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.roxoProfundo,
+              borderRadius: BorderRadius.circular(30),
             ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: _usuario!.streakData.where((d) => d.imagem != 'fogo-inativo.png').length / 7,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _usuario!.streakData
+                      .map((day) => Text(day.diaSemana,
+                          style: const TextStyle(
+                              fontFamily: 'Jersey 10',
+                              color: AppColors.cinzaSub,
+                              fontSize: 14)))
+                      .toList(),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _usuario!.streakData
+                      .map((day) => Image.asset("assets/images/${day.imagem}",
+                          width: 30, height: 30))
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: LinearProgressIndicator(
+              value: _usuario!.streakData
+                      .where((d) => d.imagem != 'fogo-inativo.png')
+                      .length /
+                  7,
               backgroundColor: AppColors.roxoProfundo,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.roxoClaro),
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(3),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.roxoClaro),
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(4),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTimerSection() {
+  Widget _buildTimerSection(BuildContext context) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(_duration.inMinutes.remainder(60));
     final seconds = twoDigits(_duration.inSeconds.remainder(60));
-    final progress = _maxDuration.inSeconds > 0 ? _duration.inSeconds / _maxDuration.inSeconds : 0.0;
+    final progress = _maxDuration.inSeconds > 0
+        ? _duration.inSeconds / _maxDuration.inSeconds
+        : 0.0;
 
-    return Center(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: BoxDecoration(
+        color: AppColors.fundoCard,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 200,
-            height: 200,
+            width: 180,
+            height: 180,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 10,
+                  value: 1 - progress,
+                  strokeWidth: 8,
                   backgroundColor: AppColors.roxoProfundo,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.verdeLima),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.verdeLima),
                 ),
                 Center(
                   child: Text(
                     '$minutes:$seconds',
                     style: const TextStyle(
                       fontFamily: 'Jersey 10',
-                      fontSize: 60,
+                      fontSize: 72,
                       color: Colors.white,
                     ),
                   ),
@@ -266,17 +320,21 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
-                icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 60),
-                onPressed: _isTimerRunning ? _stopTimer : _startTimer,
+                icon: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+                onPressed: _startTimer,
               ),
-              const SizedBox(width: 40),
               IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white, size: 60),
+                icon: const Icon(Icons.pause, color: Colors.white, size: 48),
+                onPressed: _stopTimer,
+              ),
+              IconButton(
+                icon:
+                    const Icon(Icons.stop, color: Colors.white, size: 48),
                 onPressed: _resetTimer,
               ),
             ],
@@ -286,60 +344,96 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen>
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildTaskSection(BuildContext context) {
     return Container(
-      color: AppColors.roxoHeader,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: Column(
-        children: [
-          Text(
-            _atividade?.nome.toUpperCase() ?? 'CARREGANDO...',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: AppColors.fundoCard, borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  children: List.generate(dificuldadeMoedas, (index) => const Icon(Icons.monetization_on, color: AppColors.amareloClaro, size: 24)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(color: AppColors.fundoCard, borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  _atividade?.recorrencia.toUpperCase() ?? 'ÚNICA',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.fundoCard, padding: const EdgeInsets.symmetric(vertical: 16)),
-                  child: const Text('CANCELAR', style: TextStyle(color: AppColors.cinzaSub)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _concluirAtividade,
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.fundoCard, padding: const EdgeInsets.symmetric(vertical: 16)),
-                  child: const Text('CONCLUIR', style: TextStyle(color: AppColors.branco)),
-                ),
-              ),
-            ],
-          ),
-        ],
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.fundoCard,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        _atividade?.nome ?? '',
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+            fontFamily: 'Jersey 10', fontSize: 32, color: Colors.white),
       ),
     );
   }
+
+  Widget _buildButtonsSection(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 100,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.fundoCard,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                    dificuldadeMoedas,
+                    (index) => const Icon(Icons.local_fire_department,
+                        color: AppColors.amareloClaro, size: 24)),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.fundoCard,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                _atividade?.recorrencia.toUpperCase() ?? 'ÚNICA',
+                style: const TextStyle(
+                    fontFamily: 'Jersey 10', fontSize: 24, color: Colors.white),
+              ),
+            )
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.fundoCard,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                child: const Text('CANCELAR',
+                    style: TextStyle(
+                        color: AppColors.cinzaSub,
+                        fontSize: 28,
+                        fontFamily: 'Jersey 10')),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _concluirAtividade,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.fundoCard,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                child: const Text('CONCLUIR',
+                    style: TextStyle(
+                        color: AppColors.branco,
+                        fontSize: 28,
+                        fontFamily: 'Jersey 10')),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
+
