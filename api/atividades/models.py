@@ -2,7 +2,7 @@ from django.db import models
 from usuarios.models import Usuario
 
 class Atividade(models.Model):
-    class Peso(models.TextChoices):
+    class Dificuldade(models.TextChoices):
         MUITO_FACIL = 'muito_facil', 'Muito fácil'
         FACIL = 'facil', 'Fácil'
         MEDIO = 'medio', 'Médio'
@@ -22,7 +22,7 @@ class Atividade(models.Model):
     idusuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='idusuario')
     nmatividade = models.CharField(max_length=100)
     dsatividade = models.TextField(blank=True)
-    peso = models.CharField(max_length=20, choices=Peso.choices)
+    dificuldade = models.CharField(max_length=20, choices=Dificuldade.choices)
     situacao = models.CharField(max_length=20, choices=Situacao.choices, default=Situacao.ATIVA)
     recorrencia = models.CharField(max_length=20, choices=Recorrencia.choices)
     dtatividade = models.DateTimeField()

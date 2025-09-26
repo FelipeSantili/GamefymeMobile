@@ -1,5 +1,5 @@
 CREATE TYPE tipo_usuario_enum AS ENUM ('comum', 'administrador');
-CREATE TYPE peso_enum AS ENUM ('muito_facil', 'facil', 'medio', 'dificil', 'muito_dificil');
+CREATE TYPE dificuldade_enum AS ENUM ('muito_facil', 'facil', 'medio', 'dificil', 'muito_dificil');
 CREATE TYPE situacao_atividade_enum AS ENUM ('ativa',  'realizada',  'cancelada');
 CREATE TYPE recorrencia_enum AS ENUM ('unica', 'recorrente');
 CREATE TYPE tipo_desafio_enum AS ENUM ('diario', 'semanal', 'mensal');
@@ -29,7 +29,7 @@ CREATE TABLE atividades (
     idatividade SERIAL PRIMARY KEY,
     idusuario INT NOT NULL REFERENCES usuarios(idusuario),
     nmatividade VARCHAR(100) NOT NULL,
-    peso peso_enum NOT NULL,
+    dificuldade dificuldade_enum NOT NULL,
     situacao situacao_atividade_enum NOT NULL,
     recorrencia recorrencia_enum NOT NULL,
     dtatividade TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -98,7 +98,7 @@ INSERT INTO desafios (nmdesafio, dsdesafio, dtinicio, dtfim, tipo, expdesafio, t
 ('Concluir 2 desafios', 'Concluir 2 desafios na semana', '2025-05-01', '2025-07-01', 'semanal', 150, 'desafios_concluidos', 2),
 ('Organização Diária', 'Cadastre suas atividades do dia.', '1900-01-01', '3000-12-31', 'diario', 50, 'atividades_criadas', 1),
 ('Desafio Difícil', 'Realize pelo menos 1 atividade difícil.', '1900-01-01', '3000-12-31', 'diario', 50, 'min_dificeis', 1),
-('Dupla Produtiva', 'Realize 2 atividades médias ou fáceis.', '1900-01-01', '3000-12-31', 'diario', 50, 'min_atividades_por_peso', 2),
+('Dupla Produtiva', 'Realize 2 atividades médias ou fáceis.', '1900-01-01', '3000-12-31', 'diario', 50, 'min_atividades_por_dificuldade', 2),
 ('Limpeza Fácil', 'Conclua todas as atividades muito fáceis do dia.', '1900-01-01', '3000-12-31', 'diario', 50, 'todas_muito_faceis', NULL),
 ('3 Atividades', 'Completar 3 atividades distintas difíceis', '2025-05-01', '2025-07-01', 'diario', 200, 'min_dificeis', 3),
 ('Meta Mensal', 'Conclua 30 atividades no mês.', '2025-05-30', '2025-12-31', 'mensal', 500, 'atividades_concluidas', 30),

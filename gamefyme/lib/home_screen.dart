@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gamefymobile/realizar_atividade_screen.dart';
 import 'dart:math';
 
 import 'config/app_colors.dart';
@@ -64,20 +65,98 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _realizarAtividade(Atividade atividade) async {
-    final success = await _apiService.realizarAtividade(atividade.id);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('"${atividade.nome}" realizada (+${atividade.xp} XP)!'),
-        ),
-      );
-      _carregarDados();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível realizar a atividade.')),
-      );
-    }
+  Future<bool?> _showRemoveConfirmationDialog(Atividade atividade) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C), // Cor de fundo do modal
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Título
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.roxoClaro,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  "Remover\nAtividade?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Nome da Atividade
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: AppColors.roxoProfundo,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  atividade.nome,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Botões de Ação
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(true), // Retorna true
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.roxoClaro,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Sim",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(false), // Retorna false
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.roxoClaro,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Não",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _handleMenuSelection(String value) {
@@ -616,7 +695,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: AppColors.verdeLima,
                       size: 28,
                     ),
-                    onPressed: () => _realizarAtividade(atividade),
+                    // A NAVEGAÇÃO AGORA ACONTECE AQUI
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RealizarAtividadeScreen(
+                            atividadeId: atividade.id,
+                          ),
+                        ),
+                      );
+                      if (result == true && mounted) {
+                        _carregarDados();
+                      }
+                    },
                   ),
                   title: Text(
                     atividade.nome,
@@ -627,8 +719,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icons.remove_circle_outline,
                       color: AppColors.cinzaSub,
                     ),
-                    onPressed: () {
-                      /* TODO: Implementar lógica de remover/cancelar */
+                    onPressed: () async {
+                      // Chama o diálogo de confirmação
+                      final bool? confirmDelete =
+                          await _showRemoveConfirmationDialog(atividade);
+
+                      // Se o usuário confirmou e o widget ainda está na tela
+                      if (confirmDelete == true && mounted) {
+                        final success = await _apiService.deleteAtividade(
+                          atividade.id,
+                        );
+
+                        if (success && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '"${atividade.nome}" removida com sucesso.',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          _carregarDados(); // Atualiza a lista de atividades
+                        } else if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Erro ao remover a atividade. Tente novamente.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
                     },
                   ),
                 ),

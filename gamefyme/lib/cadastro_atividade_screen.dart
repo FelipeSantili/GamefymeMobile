@@ -7,7 +7,8 @@ class CadastroAtividadeScreen extends StatefulWidget {
   const CadastroAtividadeScreen({super.key});
 
   @override
-  State<CadastroAtividadeScreen> createState() => _CadastroAtividadeScreenState();
+  State<CadastroAtividadeScreen> createState() =>
+      _CadastroAtividadeScreenState();
 }
 
 class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
@@ -47,7 +48,7 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
         descricao: _descricaoController.text,
         recorrencia: _recorrenciaSelecionada,
         tpEstimado: int.parse(_tempoEstimadoController.text),
-        peso: dificuldades[_dificuldadeSelecionada]!,
+        dificuldade: dificuldades[_dificuldadeSelecionada]!,
       );
 
       if (!mounted) return;
@@ -56,12 +57,18 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
 
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message']), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context, true); // Retorna true para a HomeScreen
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro: ${result['message']}"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Erro: ${result['message']}"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -91,7 +98,8 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
               _buildTextField(
                 controller: _nomeController,
                 label: 'Nome da atividade',
-                validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 20),
               _buildTextField(
@@ -133,10 +141,14 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.verdeLima,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: AppColors.fundoEscuro)
+                    ? const CircularProgressIndicator(
+                        color: AppColors.fundoEscuro,
+                      )
                     : const Text(
                         'CADASTRAR',
                         style: TextStyle(
@@ -156,7 +168,11 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(color: AppColors.branco, fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(
+        color: AppColors.branco,
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -187,13 +203,9 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
   Widget _buildRecorrenciaSelector() {
     return Row(
       children: [
-        Expanded(
-          child: _buildRecorrenciaButton('ÚNICA', 'unica'),
-        ),
+        Expanded(child: _buildRecorrenciaButton('ÚNICA', 'unica')),
         const SizedBox(width: 10),
-        Expanded(
-          child: _buildRecorrenciaButton('RECORRENTE', 'recorrente'),
-        ),
+        Expanded(child: _buildRecorrenciaButton('RECORRENTE', 'recorrente')),
       ],
     );
   }
@@ -206,7 +218,12 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
         backgroundColor: isSelected ? AppColors.roxoClaro : AppColors.fundoCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Text(text, style: TextStyle(color: isSelected ? AppColors.branco : AppColors.cinzaSub)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isSelected ? AppColors.branco : AppColors.cinzaSub,
+        ),
+      ),
     );
   }
 
@@ -219,7 +236,9 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
           icon: Icon(
             Icons.monetization_on,
             size: 35,
-            color: index <= _dificuldadeSelecionada ? AppColors.amareloClaro : AppColors.cinzaSub,
+            color: index <= _dificuldadeSelecionada
+                ? AppColors.amareloClaro
+                : AppColors.cinzaSub,
           ),
         );
       }),

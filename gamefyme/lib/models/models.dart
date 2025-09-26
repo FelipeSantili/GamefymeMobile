@@ -21,7 +21,8 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
-    var streakList = (json['streak_data'] as List<dynamic>?)
+    var streakList =
+        (json['streak_data'] as List<dynamic>?)
             ?.map((e) => StreakDia.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -43,10 +44,7 @@ class StreakDia {
   final String diaSemana;
   final String imagem;
 
-  StreakDia({
-    required this.diaSemana,
-    required this.imagem,
-  });
+  StreakDia({required this.diaSemana, required this.imagem});
 
   factory StreakDia.fromJson(Map<String, dynamic> json) {
     return StreakDia(
@@ -57,18 +55,38 @@ class StreakDia {
 }
 
 // Modelo para a lista de atividades na tela principal
+// Modelo para a lista de atividades na tela principal
 class Atividade {
   final int id;
   final String nome;
+  final String descricao;
+  final String dificuldade;
+  final String recorrencia;
+  final int tpEstimado; // em minutos
   final int xp;
+  final int nivelUsuario; // Adicionado para o ícone de perfil
 
-  Atividade({required this.id, required this.nome, required this.xp});
+  Atividade({
+    required this.id,
+    required this.nome,
+    required this.descricao,
+    required this.dificuldade,
+    required this.recorrencia,
+    required this.tpEstimado,
+    required this.xp,
+    required this.nivelUsuario,
+  });
 
   factory Atividade.fromJson(Map<String, dynamic> json) {
     return Atividade(
       id: json['idatividade'] ?? 0,
       nome: json['nmatividade'] ?? 'Atividade sem nome',
+      descricao: json['dsatividade'] ?? '',
+      dificuldade: json['dificuldade'] ?? 'medio',
+      recorrencia: json['recorrencia'] ?? 'unica',
+      tpEstimado: json['tpestimado'] ?? 0,
       xp: json['expatividade'] ?? 0,
+      nivelUsuario: json['nivelusuario'] ?? 1,
     );
   }
 }
@@ -114,9 +132,14 @@ class Conquista {
     required this.desbloqueada,
   });
 
-  factory Conquista.fromJson(Map<String, dynamic> json, {bool desbloqueada = false}) {
-    final conquistaData = json.containsKey('conquista') ? json['conquista'] : json;
-    
+  factory Conquista.fromJson(
+    Map<String, dynamic> json, {
+    bool desbloqueada = false,
+  }) {
+    final conquistaData = json.containsKey('conquista')
+        ? json['conquista']
+        : json;
+
     return Conquista(
       id: conquistaData['idconquista'] ?? 0,
       nome: conquistaData['nmconquista'] ?? '',

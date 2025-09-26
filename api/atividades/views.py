@@ -5,21 +5,21 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Atividade
 from .serializers import AtividadeSerializer
 
-# Função para calcular a experiência baseada no peso e tempo estimado
-def calcular_experiencia(peso: str, tempo_estimado: int) -> int:
+# Função para calcular a experiência baseada na dificuldade e tempo estimado
+def calcular_experiencia(dificuldade: str, tempo_estimado: int) -> int:
     """
-    Calcula a experiência ganha por uma atividade baseado no seu peso e tempo.
+    Calcula a experiência ganha por uma atividade baseado na sua dificuldade e tempo.
     RN 04 - A experiência não poderá ultrapassar de 500 e tem um mínimo de 50.
     """
     exp_base = 50
-    multiplicadores_peso = {
+    multiplicadores_dificuldade = {
         'muito_facil': 1.0,
         'facil': 2.0,
         'medio': 3.0,
         'dificil': 4.0,
         'muito_dificil': 5.0
     }
-    multiplicador_peso = multiplicadores_peso.get(peso, 1.0)
+    multiplicador_dificuldade = multiplicadores_dificuldade.get(dificuldade, 1.0)
 
     if tempo_estimado <= 30:
         multiplicador_tempo = 1.0
@@ -30,7 +30,7 @@ def calcular_experiencia(peso: str, tempo_estimado: int) -> int:
     else:
         multiplicador_tempo = 2.5
 
-    experiencia = round(exp_base * multiplicador_peso * multiplicador_tempo)
+    experiencia = round(exp_base * multiplicador_dificuldade * multiplicador_tempo)
     
     return max(50, min(experiencia, 500))
 
