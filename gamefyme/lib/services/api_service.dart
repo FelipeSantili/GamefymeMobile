@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
-import '../models/models.dart'; // Vamos criar este arquivo a seguir
+import '../models/models.dart'; 
 
 class ApiService {
   final AuthService _authService = AuthService();
-  // Use 10.0.2.2 para emulador Android, 127.0.0.1 para web/desktop
   static const String _baseRoot = 'http://127.0.0.1:8000/api';
 
   Future<Map<String, String>> _getHeaders() async {
@@ -52,10 +51,32 @@ class ApiService {
     final url = Uri.parse('$_baseRoot/atividades/$atividadeId/');
     try {
       final response = await http.delete(url, headers: await _getHeaders());
-      // O status HTTP 204 No Content indica que a remoção foi bem-sucedida.
       return response.statusCode == 204;
     } catch (e) {
       debugPrint('Erro ao deletar atividade: $e');
+      return false;
+    }
+  }
+
+  Future<bool> cancelAtividade(int atividadeId) async {
+    final url = Uri.parse('$_baseRoot/atividades/$atividadeId/cancelar/');
+    try {
+      final response = await http.post(url, headers: await _getHeaders());
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Erro ao cancelar atividade: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateProfilePicture(String avatarName) async {
+    final url = Uri.parse('$_baseRoot/usuarios/me/');
+    final body = jsonEncode({'imagem_perfil': avatarName});
+    try {
+      final response = await http.patch(url, headers: await _getHeaders(), body: body);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Erro ao atualizar a foto de perfil: $e');
       return false;
     }
   }
@@ -91,7 +112,6 @@ class ApiService {
     return res.statusCode == 200;
   }
 
-  // --- NOVO MÉTODO PARA CADASTRAR ATIVIDADE ---
   Future<Map<String, dynamic>> cadastrarAtividade({
     required String nome,
     required String descricao,

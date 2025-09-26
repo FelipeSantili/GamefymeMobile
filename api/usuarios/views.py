@@ -63,7 +63,7 @@ class CadastroAPIView(APIView):
             return Response({"erro": f"Erro inesperado: {str(e)}"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-# URL da API - /api/usuarios/login/     
+# URL da API - /api/usuarios/login/      
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     
@@ -110,4 +110,24 @@ class UsuarioDetailView(APIView):
         Retorna os dados detalhados do usuário autenticado.
         """
         serializer = UsuarioSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        """
+        Atualiza a imagem de perfil do usuário.
+        """
+        user = request.user
+        imagem_perfil = request.data.get("imagem_perfil")
+
+        if not imagem_perfil:
+            return Response({"erro": "Nenhuma imagem de perfil fornecida."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Valide se a imagem de perfil está entre as opções permitidas no modelo
+        allowed_images = [choice[0] for choice in Usuario.imagem_perfil.field.choices]
+        if imagem_perfil not in allowed_images:
+            return Response({"erro": "Imagem de perfil inválida."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.imagem_perfil = imagem_perfil
+        user.save()
+        serializer = UsuarioSerializer(user)
         return Response(serializer.data)

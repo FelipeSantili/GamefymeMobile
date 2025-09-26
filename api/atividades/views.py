@@ -41,11 +41,20 @@ class AtividadeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Atividade.objects.filter(idusuario=user)
+        # Retorna apenas as atividades que não estão canceladas
+        return Atividade.objects.filter(idusuario=user).exclude(situacao='cancelada')
 
     def perform_create(self, serializer):
-        # define o usuário logado como o dono da atividade
-        serializer.save(idusuario=self.request.user)
+        # Pega os dados validados antes de salvar
+        validated_data = serializer.validated_data
+        dificuldade = validated_data.get('dificuldade')
+        tempo_estimado = validated_data.get('tpestimado')
+
+        # Calcula a experiência
+        exp = calcular_experiencia(dificuldade, tempo_estimado)
+
+        # Salva a atividade com o usuário logado e a experiência calculada
+        serializer.save(idusuario=self.request.user, expatividade=exp)
 
     # A rota será /api/atividades/{pk}/realizar/
     @action(detail=True, methods=['post'])
@@ -63,6 +72,22 @@ class AtividadeViewSet(viewsets.ModelViewSet):
             
             # Por enquanto, vamos apenas retornar sucesso
             return Response({'status': 'atividade realizada'}, status=status.HTTP_200_OK)
+        except Atividade.DoesNotExist:
+            return Response({'erro': 'Atividade não encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Nova rota para cancelar a atividade
+    @action(detail=True, methods=['post'])
+    def cancelar(self, request, pk=None):
+        """
+        Marca uma atividade como cancelada.
+        """
+        try:
+            atividade = self.get_object()
+            atividade.situacao = 'cancelada'
+            atividade.save()
+            return Response({'status': 'atividade cancelada'}, status=status.HTTP_200_OK)
         except Atividade.DoesNotExist:
             return Response({'erro': 'Atividade não encontrada'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

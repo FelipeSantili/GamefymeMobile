@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // imports do seu projeto
 import 'home_screen.dart';
@@ -127,12 +128,44 @@ class _LoginPageState extends State<LoginPage> {
   final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false; // Estado para o Checkbox
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  // Carrega o e-mail salvo, se existir
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    if (savedEmail != null) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _rememberMe = true;
+      });
+    }
+  }
+
+  // Salva ou remove o e-mail conforme a seleção
+  Future<void> _handleRememberMe(bool value) async {
+    setState(() {
+      _rememberMe = value;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('saved_email', _emailController.text);
+    } else {
+      await prefs.remove('saved_email');
+    }
   }
 
   bool _validEmail(String email) {
@@ -154,6 +187,9 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     setState(() => _isLoading = true);
+
+    // Salva ou remove o email antes de fazer o login
+    await _handleRememberMe(_rememberMe);
 
     final result = await _authService.login(email, senha);
 
@@ -213,7 +249,26 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
+                    // Checkbox "Lembrar-me"
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _rememberMe = value;
+                              });
+                            }
+                          },
+                          checkColor: Colors.white,
+                          activeColor: const Color(0xFF7B1FA2),
+                        ),
+                        const Text("Lembrar-me", style: TextStyle(color: Colors.black87)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -462,4 +517,3 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
