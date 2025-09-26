@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'atividades',
     'conquistas',
     'desafios',
+    'notificacoes',
     'drf_yasg',
 ]
 
@@ -106,14 +107,13 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'gamefymedb',
         'USER': 'postgres',
         'PASSWORD': 'ifpr',
         'HOST': 'localhost',
         'PORT': 5432,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

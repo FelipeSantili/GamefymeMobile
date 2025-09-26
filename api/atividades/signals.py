@@ -7,6 +7,7 @@ from .models import AtividadeConcluidas
 from desafios.models import Desafio, UsuarioDesafio
 from conquistas.models import Conquista, UsuarioConquista
 from usuarios.models import Usuario
+from notificacoes.services import criar_notificacao
 
 def _verificar_e_premiar_desafios(usuario):
     """
@@ -68,13 +69,37 @@ def _verificar_e_premiar_conquistas(usuario):
     except Conquista.DoesNotExist:
         pass # Conquista não encontrada, ignora a verificação
 
-
 @receiver(post_save, sender=AtividadeConcluidas)
 def verificar_recompensas_on_atividade_concluida(sender, instance, created, **kwargs):
     """
-    Este é o "observador". Ele é chamado toda vez que uma nova AtividadeConcluidas é criada.
+    Este é o "observador". Ele é chamado toda vez que uma nova AtividadeConcluidas é 
+    criada.
     """
     if created:
         usuario = instance.idusuario
+        atividade = instance.idatividade
+        exp_ganha = atividade.expatividade
+        
+        # Lógica de Notificação que estava na sua view antiga
+        nivel_anterior = usuario.nivelusuario
+        
+        # Notificação de atividade concluída
+        criar_notificacao(
+            usuario, 
+            f'Parabéns! Você completou a atividade "{atividade.nmatividade}" e ganhou {exp_ganha} XP!', 
+            'sucesso'
+        )
+
+        # Verifica se o usuário subiu de nível para enviar notificação
+        # (A lógica de XP e nível já deve estar no seu signal ou em outro lugar que atualize o usuário)
+        # Supondo que o usuário já foi atualizado antes deste ponto:
+        if usuario.nivelusuario > nivel_anterior:
+            criar_notificacao(
+                usuario, 
+                f'🎉 Incrível! Você alcançou o nível {usuario.nivelusuario}!', 
+                'sucesso'
+            )
+
+        # Chama as outras verificações
         _verificar_e_premiar_desafios(usuario)
         _verificar_e_premiar_conquistas(usuario)
