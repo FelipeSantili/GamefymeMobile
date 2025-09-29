@@ -8,7 +8,7 @@ import 'services/api_service.dart';
 import 'models/models.dart';
 import 'main.dart';
 import 'realizar_atividade_screen.dart';
-import 'widgets/user_level_avatar.dart'; // Importa o novo widget
+import 'widgets/user_level_avatar.dart';
 
 enum ScreenState { loading, loaded, error }
 
@@ -59,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _notificacoes = results[4] as List<Notificacao>;
         _screenState = ScreenState.loaded;
       });
+      // Linha de debug para verificar os dados recebidos da API
+      debugPrint('Dados de Streak Recebidos: ${_usuario?.streakData.map((e) => e.imagem).toList()}');
     } catch (e) {
       debugPrint('Erro ao carregar dados da home: $e');
       if (!mounted) return;
@@ -365,81 +367,114 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAchievementsCard(List<Conquista> conquistas) {
-    return Container(
-      height: 42,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.fundoCard,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: conquistas
-            .map(
-              (c) => Image.asset(
-                "assets/conquistas/${c.imagem}",
-                width: 24,
-                height: 24,
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
+ Widget _buildAchievementsCard(List<Conquista> conquistas) {
+  return Container(
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: AppColors.fundoCard,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Center(
+          child: Text(
+            "Conquistas",
+            style: TextStyle(
+              color: AppColors.branco,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: conquistas
+              .map(
+                (c) => Image.asset(
+                  "assets/conquistas/${c.imagem}",
+                  width: 24,
+                  height: 24,
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStreakCard(List<StreakDia> streakData) {
-    return Container(
-      height: 103,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.fundoCard,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+  const ordemSemana = [
+    "Dom",
+    "Seg",
+    "Ter",
+    "Qua",
+    "Qui",
+    "Sex",
+    "Sáb",
+  ];
+
+  final streakOrdenado = ordemSemana.map((dia) {
+    return streakData.firstWhere(
+      (s) => s.diaSemana == dia,
+      orElse: () => StreakDia(diaSemana: dia, imagem: "fogo-inativo.png"),
+    );
+  }).toList();
+
+  return Container(
+    height: 103,
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: AppColors.fundoCard,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Center(
+          child: Text(
             "Dias contínuos de atividades",
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: streakData
-                .map(
-                  (dia) => Column(
-                    children: [
-                      Text(
-                        dia.diaSemana,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.cinzaSub,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Image.asset("assets/images/${dia.imagem}", width: 20),
-                    ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: streakOrdenado.map(
+            (dia) => Column(
+              children: [
+                Text(
+                  dia.diaSemana,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.cinzaSub,
                   ),
-                )
-                .toList(),
-          ),
-          const Spacer(),
-          LinearProgressIndicator(
-            value:
-                streakData.where((d) => d.imagem != 'fogo-inativo.png').length /
-                    7,
-            backgroundColor: AppColors.roxoProfundo,
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              AppColors.roxoClaro,
+                ),
+                const SizedBox(height: 4),
+                Image.asset("assets/images/${dia.imagem}", width: 20),
+              ],
             ),
-            minHeight: 6,
-            borderRadius: BorderRadius.circular(3),
+          ).toList(),
+        ),
+        const Spacer(),
+        LinearProgressIndicator(
+          value: streakOrdenado
+                  .where((d) => d.imagem != 'fogo-inativo.png')
+                  .length /
+              7,
+          backgroundColor: AppColors.roxoProfundo,
+          valueColor: const AlwaysStoppedAnimation<Color>(
+            AppColors.roxoClaro,
           ),
-        ],
-      ),
-    );
-  }
+          minHeight: 6,
+          borderRadius: BorderRadius.circular(3),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildChallengesAndActivitiesSection(List<Atividade> atividades) {
     return Container(
@@ -470,67 +505,68 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDesafioCard(DesafioPendente desafio) {
-    double progresso = desafio.progresso / max(1, desafio.meta);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.fundoCard,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  desafio.nome,
-                  style: const TextStyle(
-                    color: AppColors.branco,
-                    fontWeight: FontWeight.bold,
+  double progresso = desafio.progresso / max(1, desafio.meta);
+  return Container(
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: AppColors.cinzaSub, // <--- aqui
+      borderRadius: BorderRadius.circular(5), // <--- aqui
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                desafio.nome,
+                style: const TextStyle(
+                  color: AppColors.branco,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      value: progresso,
+                      backgroundColor: AppColors.roxoProfundo,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.amareloClaro,
+                      ),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: progresso,
-                        backgroundColor: AppColors.roxoProfundo,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.amareloClaro,
-                        ),
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "${desafio.progresso}/${desafio.meta}",
+                    style: const TextStyle(
+                      color: AppColors.branco,
+                      fontSize: 12,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "${desafio.progresso}/${desafio.meta}",
-                      style: const TextStyle(
-                        color: AppColors.cinzaSub,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Text(
-            "${desafio.xp}xp",
-            style: const TextStyle(
-              color: AppColors.amareloClaro,
-              fontWeight: FontWeight.bold,
-            ),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          "${desafio.xp}xp",
+          style: const TextStyle(
+            color: AppColors.amareloClaro,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildAtividadesSection(List<Atividade> atividades) {
     return Expanded(

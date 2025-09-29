@@ -45,6 +45,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         ('avatar1.png', 'Avatar 1'),
         ('avatar2.png', 'Avatar 2'),
         ('avatar3.png', 'Avatar 3'),
+        ('avatar4.png', 'Avatar 4'),
     ],
     default='avatar1.png'
 )

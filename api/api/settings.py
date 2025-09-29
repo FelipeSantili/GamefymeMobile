@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'desafios',
     'notificacoes',
     'drf_yasg',
+    'core',
 ]
 
 REST_FRAMEWORK = {

@@ -2,39 +2,36 @@
 class Usuario {
   final int id;
   final String nome;
-  final String imagemPerfil;
+  final String email;
   final int nivel;
   final int exp;
   final int expTotalNivel;
-  final int streakAtual;
+  final String imagemPerfil;
   final List<StreakDia> streakData;
 
   Usuario({
     required this.id,
     required this.nome,
-    required this.imagemPerfil,
+    required this.email,
     required this.nivel,
     required this.exp,
     required this.expTotalNivel,
-    required this.streakAtual,
+    required this.imagemPerfil,
     required this.streakData,
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
-    var streakList =
-        (json['streak_data'] as List<dynamic>?)
-            ?.map((e) => StreakDia.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [];
     return Usuario(
-      id: json['idusuario'] ?? 0,
-      nome: json['nmusuario'] ?? 'Usuário',
+      id: json['idusuario'],
+      nome: json['nmusuario'],
+      email: json['emailusuario'],
+      nivel: json['nivelusuario'],
+      exp: json['expusuario'],
+      expTotalNivel: json['exp_total_nivel'], // <-- vem do backend
       imagemPerfil: json['imagem_perfil'] ?? 'avatar1.png',
-      nivel: json['nivelusuario'] ?? 1,
-      exp: json['expusuario'] ?? 0,
-      expTotalNivel: json['exp_total_nivel'] ?? 1000,
-      streakAtual: json['streak_atual'] ?? 0,
-      streakData: streakList,
+      streakData: (json['streak_data'] as List<dynamic>? ?? [])
+          .map((e) => StreakDia.fromJson(e))
+          .toList(),
     );
   }
 }
@@ -48,8 +45,8 @@ class StreakDia {
 
   factory StreakDia.fromJson(Map<String, dynamic> json) {
     return StreakDia(
-      diaSemana: json['dia_semana'] ?? 'N/A',
-      imagem: json['imagem'] ?? 'fogo-inativo.png',
+      diaSemana: json['dia_semana'],
+      imagem: json['imagem'],
     );
   }
 }
