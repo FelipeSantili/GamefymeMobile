@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
 
@@ -30,11 +30,19 @@ class _HomeScreenState extends State<HomeScreen> {
   List<DesafioPendente> _desafios = [];
   List<Notificacao> _notificacoes = [];
   String _searchText = '';
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _carregarDados();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _carregarDados() async {
@@ -148,7 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       toolbarHeight: 60,
       automaticallyImplyLeading: false,
-      // colocamos os botões no title pra ficar alinhado à esquerda como antes
       title: Row(
         children: [
           _buildNotificationButton(naoLidas),
@@ -240,114 +247,130 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildChallengesAchievementsButton() {
-  // filtra apenas desafios diários e ordena (ex: por id)
-  final diarios = _desafios
-      .where((d) => d.tipo.trim().toLowerCase() == 'diario')
-      .toList()
-    ..sort((a, b) => a.id.compareTo(b.id));
+    final diarios = _desafios
+        .where((d) => d.tipo.trim().toLowerCase() == 'diario')
+        .toList()
+      ..sort((a, b) => a.id.compareTo(b.id));
 
-  return PopupMenuButton<int>(
-    color: AppColors.fundoCard,
-    icon: const Icon(Icons.emoji_events, color: AppColors.verdeLima, size: 30),
-    offset: const Offset(0, 50),
-    itemBuilder: (context) {
-      return [
-        PopupMenuItem<int>(
-          enabled: false,
-          child: Container(
-            width: 320,
-            constraints: const BoxConstraints(maxHeight: 400),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Desafios diários",
-                    style: TextStyle(
-                        color: AppColors.branco,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  if (diarios.isEmpty)
-                    const Text("Nenhum desafio diário", style: TextStyle(color: AppColors.cinzaSub))
-                  else
-                    Column(
-                      children: diarios.map((d) {
-                        double progresso = d.progresso / max(1, d.meta);
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.cinzaSub,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(d.nome, style: const TextStyle(color: AppColors.branco, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 6),
-                                    LinearProgressIndicator(
-                                      value: progresso,
-                                      backgroundColor: AppColors.roxoProfundo,
-                                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.amareloClaro),
-                                      minHeight: 6,
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text("${d.progresso}/${d.meta}", style: const TextStyle(color: AppColors.branco)),
-                              const SizedBox(width: 8),
-                              Text("${d.xp}xp", style: const TextStyle(color: AppColors.amareloClaro, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+    return PopupMenuButton<int>(
+      color: AppColors.fundoCard,
+      icon: const Icon(Icons.emoji_events,
+          color: AppColors.verdeLima, size: 30),
+      offset: const Offset(0, 50),
+      itemBuilder: (context) {
+        return [
+          PopupMenuItem<int>(
+            enabled: false,
+            child: Container(
+              width: 320,
+              constraints: const BoxConstraints(maxHeight: 400),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Desafios diários",
+                      style: TextStyle(
+                          color: AppColors.branco,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14),
                     ),
-                  const SizedBox(height: 12),
-                  const Divider(color: AppColors.roxoProfundo),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Conquistas",
-                    style: TextStyle(
-                        color: AppColors.branco,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_conquistas.isEmpty)
-                    const Text("Nenhuma conquista", style: TextStyle(color: AppColors.cinzaSub))
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _conquistas.take(20).map((c) {
-                        return SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: Image.asset("assets/conquistas/${c.imagem}", fit: BoxFit.contain),
-                        );
-                      }).toList(),
-                    ),
-                  if (_conquistas.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text('${_conquistas.length} conquistas', style: const TextStyle(color: AppColors.cinzaSub)),
+                    if (diarios.isEmpty)
+                      const Text("Nenhum desafio diário",
+                          style: TextStyle(color: AppColors.cinzaSub))
+                    else
+                      Column(
+                        children: diarios.map((d) {
+                          double progresso = d.progresso / max(1, d.meta);
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.cinzaSub,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(d.nome,
+                                          style: const TextStyle(
+                                              color: AppColors.branco,
+                                              fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 6),
+                                      LinearProgressIndicator(
+                                        value: progresso,
+                                        backgroundColor:
+                                            AppColors.roxoProfundo,
+                                        valueColor:
+                                            const AlwaysStoppedAnimation<
+                                                Color>(AppColors.amareloClaro),
+                                        minHeight: 6,
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text("${d.progresso}/${d.meta}",
+                                    style: const TextStyle(
+                                        color: AppColors.branco)),
+                                const SizedBox(width: 8),
+                                Text("${d.xp}xp",
+                                    style: const TextStyle(
+                                        color: AppColors.amareloClaro,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    const SizedBox(height: 12),
+                    const Divider(color: AppColors.roxoProfundo),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Conquistas",
+                      style: TextStyle(
+                          color: AppColors.branco,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_conquistas.isEmpty)
+                      const Text("Nenhuma conquista",
+                          style: TextStyle(color: AppColors.cinzaSub))
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _conquistas.take(20).map((c) {
+                          return SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Image.asset("assets/conquistas/${c.imagem}",
+                                fit: BoxFit.contain),
+                          );
+                        }).toList(),
+                      ),
+                    if (_conquistas.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('${_conquistas.length} conquistas',
+                          style: const TextStyle(color: AppColors.cinzaSub)),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ];
-    },
-  );
-}
-
+        ];
+      },
+    );
+  }
 
   Widget _buildBody() {
     switch (_screenState) {
@@ -380,13 +403,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       case ScreenState.loaded:
-        final filteredActivities = _atividades
-            .where(
-              (a) => a.nome.toLowerCase().contains(_searchText.toLowerCase()),
-            )
-            .toList();
-
-        // altura fixa para os cards de perfil + streak para manter mesma altura
         const double cardHeight = 220;
 
         return SliverPadding(
@@ -396,14 +412,12 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // card de perfil com largura fixa
                   SizedBox(
                     width: 150,
                     height: cardHeight,
                     child: _buildUserInfoCard(_usuario!),
                   ),
                   const SizedBox(width: 16),
-                  // streak com maior largura (flex maior) e mesma altura
                   Expanded(
                     flex: 2,
                     child: SizedBox(
@@ -413,13 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // Removemos o card de conquistas e a seção de desafios do corpo principal.
-              // Agora essas informações ficam no botão de Desafios & Conquistas no AppBar.
-
-              _buildAtividadesSection(filteredActivities),
+              _buildAtividadesSection(),
             ]),
           ),
         );
@@ -472,7 +481,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUserInfoCard(Usuario user) {
     return Container(
-      // largura controlada pelo SizedBox que envolve este widget na row
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.fundoCard,
@@ -511,61 +519,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAchievementsCard(List<Conquista> conquistas) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.fundoCard,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(
-            child: Text(
-              "Conquistas",
-              style: TextStyle(
-                color: AppColors.branco,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.start,
-            children: conquistas.take(10).map((c) {
-              return SizedBox(
-                width: 40,
-                height: 40,
-                child: Image.asset(
-                  "assets/conquistas/${c.imagem}",
-                  fit: BoxFit.contain,
-                ),
-              );
-            }).toList(),
-          ),
-          if (conquistas.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              '${conquistas.length} conquistas',
-              style: const TextStyle(color: AppColors.cinzaSub, fontSize: 12),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildStreakCard(Usuario usuario) {
     final double progress = usuario.expTotalNivel > 0
         ? usuario.exp.toDouble() / usuario.expTotalNivel.toDouble()
         : 0;
 
     return Container(
-      // altura controlada pelo SizedBox que envolve este widget na row
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.fundoCard,
@@ -588,30 +547,31 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: usuario.streakData.map((dia) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      dia.diaSemana,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.branco,
+                return Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        dia.diaSemana,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.branco,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Image.asset(
-                      'assets/images/${dia.imagem}',
-                      width: 28,
-                      height: 28,
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Image.asset(
+                        'assets/images/${dia.imagem}',
+                        width: 28,
+                        height: 28,
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ),
           ),
           const SizedBox(height: 12),
-          // Barra de XP
           Column(
             children: [
               Row(
@@ -650,72 +610,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDesafioCard(DesafioPendente desafio) {
-    double progresso = desafio.progresso / max(1, desafio.meta);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.cinzaSub,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  desafio.nome,
-                  style: const TextStyle(
-                    color: AppColors.branco,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: progresso,
-                        backgroundColor: AppColors.roxoProfundo,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.amareloClaro,
-                        ),
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "${desafio.progresso}/${desafio.meta}",
-                      style: const TextStyle(
-                        color: AppColors.branco,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            "${desafio.xp}xp",
-            style: const TextStyle(
-              color: AppColors.amareloClaro,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildAtividadesSection() {
+    final atividadesRecorrentes = _atividades
+        .where((a) =>
+            a.recorrencia != 'unica' &&
+            a.situacao == 'ativa' &&
+            a.nome.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList();
 
-  Widget _buildAtividadesSection(List<Atividade> atividades) {
+    final atividadesUnicas = _atividades
+        .where((a) =>
+            a.recorrencia == 'unica' &&
+            a.situacao == 'ativa' &&
+            a.nome.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList();
+
     return Container(
-      height: 369,
+      height: 400,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.fundoCard,
@@ -742,95 +653,117 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Recorrentes'),
+              Tab(text: 'Únicas'),
+            ],
+            labelColor: AppColors.verdeLima,
+            unselectedLabelColor: AppColors.cinzaSub,
+            indicatorColor: AppColors.verdeLima,
+          ),
           Expanded(
-            child: atividades.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      "Nenhuma atividade encontrada.",
-                      style: TextStyle(color: AppColors.cinzaSub),
-                    ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: atividades.length,
-                    itemBuilder: (context, index) {
-                      final atividade = atividades[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.roxoMedio,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: IconButton(
-                            icon: const Icon(
-                              Icons.add_circle,
-                              color: AppColors.verdeLima,
-                              size: 28,
-                            ),
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RealizarAtividadeScreen(
-                                    atividadeId: atividade.id,
-                                  ),
-                                ),
-                              );
-                              if (result == true && mounted) {
-                                _carregarDados();
-                              }
-                            },
-                          ),
-                          title: Text(
-                            atividade.nome,
-                            style: const TextStyle(color: AppColors.branco),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.remove_circle_outline,
-                              color: AppColors.cinzaSub,
-                            ),
-                            onPressed: () async {
-                              final confirmDelete = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Remover Atividade?'),
-                                  content: Text(
-                                    'Você tem certeza que deseja remover a atividade "${atividade.nome}"?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text('Não'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text('Sim'),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirmDelete == true) {
-                                final success =
-                                    await _apiService.cancelAtividade(atividade.id);
-                                if (success) {
-                                  _carregarDados();
-                                }
-                              }
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildAtividadesList(atividadesRecorrentes),
+                _buildAtividadesList(atividadesUnicas),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAtividadesList(List<Atividade> atividades) {
+    if (atividades.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Text(
+            "Nenhuma atividade encontrada.",
+            style: TextStyle(color: AppColors.cinzaSub),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: atividades.length,
+      itemBuilder: (context, index) {
+        final atividade = atividades[index];
+        return Container(
+          margin: const EdgeInsets.only(top: 8),
+          decoration: BoxDecoration(
+            color: AppColors.roxoMedio,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: ListTile(
+            leading: IconButton(
+              icon: const Icon(
+                Icons.add_circle,
+                color: AppColors.verdeLima,
+                size: 28,
+              ),
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RealizarAtividadeScreen(
+                      atividadeId: atividade.id,
+                    ),
+                  ),
+                );
+                if (result == true && mounted) {
+                  _carregarDados();
+                }
+              },
+            ),
+            title: Text(
+              atividade.nome,
+              style: const TextStyle(color: AppColors.branco),
+            ),
+            trailing: IconButton(
+              icon: const Icon(
+                Icons.remove_circle_outline,
+                color: AppColors.cinzaSub,
+              ),
+              onPressed: () async {
+                final confirmDelete = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Remover Atividade?'),
+                    content: Text(
+                      'Você tem certeza que deseja remover a atividade "${atividade.nome}"?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Não'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Sim'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmDelete == true) {
+                  final success =
+                      await _apiService.cancelAtividade(atividade.id);
+                  if (success) {
+                    _carregarDados();
+                  }
+                }
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

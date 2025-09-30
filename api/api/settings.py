@@ -108,7 +108,7 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gamefyme',
+        'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'ifpr',
         'HOST': 'localhost',

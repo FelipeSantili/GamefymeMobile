@@ -100,6 +100,14 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
     });
   }
 
+  void _toggleTimer() {
+    if (_isTimerRunning) {
+      _stopTimer();
+    } else {
+      _startTimer();
+    }
+  }
+
   Future<void> _concluirAtividade() async {
     final success = await _apiService.realizarAtividade(_atividade!.id);
     if (success && mounted) {
@@ -212,11 +220,6 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
   }
 
   Widget _buildActivityStreakSection(BuildContext context) {
-    // Aqui adicionamos a barra de experiência igual à do menu principal abaixo do streak
-    final streakProgressCount =
-        _usuario!.streakData.where((d) => d.imagem != 'fogo-inativo.png').length;
-    final streakFraction = streakProgressCount / 7;
-
     final double expProgress = _usuario!.expTotalNivel > 0
         ? _usuario!.exp.toDouble() / _usuario!.expTotalNivel.toDouble()
         : 0.0;
@@ -267,20 +270,6 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: LinearProgressIndicator(
-              value: streakFraction.clamp(0.0, 1.0),
-              backgroundColor: AppColors.roxoProfundo,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.roxoClaro),
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-
-          // === Nova seção: barra de experiência igual ao menu principal ===
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -318,7 +307,6 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
               ],
             ),
           ),
-          // === fim da barra de experiência ===
         ],
       ),
     );
@@ -371,17 +359,13 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
-                icon: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
-                onPressed: _startTimer,
-              ),
-              IconButton(
-                icon: const Icon(Icons.pause, color: Colors.white, size: 48),
-                onPressed: _stopTimer,
-              ),
-              IconButton(
-                icon:
-                    const Icon(Icons.stop, color: Colors.white, size: 48),
+                icon: const Icon(Icons.replay, color: Colors.white, size: 48),
                 onPressed: _resetTimer,
+              ),
+              IconButton(
+                icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white, size: 48),
+                onPressed: _toggleTimer,
               ),
             ],
           ),
@@ -413,21 +397,23 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              width: 100,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.fundoCard,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                    dificuldadeMoedas,
-                    (index) => const Icon(Icons.local_fire_department,
-                        color: AppColors.amareloClaro, size: 24)),
+            Flexible( // ADICIONADO Flexible
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8), // Padding ajustado
+                decoration: BoxDecoration(
+                  color: AppColors.fundoCard,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                      dificuldadeMoedas,
+                      (index) => const Icon(Icons.local_fire_department,
+                          color: AppColors.amareloClaro, size: 24)),
+                ),
               ),
             ),
+            const SizedBox(width: 16), // Espaçamento entre os widgets
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               decoration: BoxDecoration(

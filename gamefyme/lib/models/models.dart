@@ -22,12 +22,12 @@ class Usuario {
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: json['idusuario'],
-      nome: json['nmusuario'],
-      email: json['emailusuario'],
-      nivel: json['nivelusuario'],
-      exp: json['expusuario'],
-      expTotalNivel: json['exp_total_nivel'], // <-- vem do backend
+      id: json['idusuario'] ?? 0,
+      nome: json['nmusuario'] ?? '',
+      email: json['emailusuario'] ?? '',
+      nivel: json['nivelusuario'] ?? 1,
+      exp: json['expusuario'] ?? 0,
+      expTotalNivel: json['exp_total_nivel'] ?? 100,
       imagemPerfil: json['imagem_perfil'] ?? 'avatar1.png',
       streakData: (json['streak_data'] as List<dynamic>? ?? [])
           .map((e) => StreakDia.fromJson(e))
@@ -45,29 +45,30 @@ class StreakDia {
 
   factory StreakDia.fromJson(Map<String, dynamic> json) {
     return StreakDia(
-      diaSemana: json['dia_semana'],
-      imagem: json['imagem'],
+      diaSemana: json['dia_semana'] ?? '',
+      imagem: json['imagem'] ?? '',
     );
   }
 }
 
-// Modelo para a lista de atividades na tela principal
 // Modelo para a lista de atividades na tela principal
 class Atividade {
   final int id;
   final String nome;
   final String descricao;
   final String dificuldade;
+  final String situacao;
   final String recorrencia;
   final int tpEstimado; // em minutos
   final int xp;
-  final int nivelUsuario; // Adicionado para o ícone de perfil
+  final int nivelUsuario;
 
   Atividade({
     required this.id,
     required this.nome,
     required this.descricao,
     required this.dificuldade,
+    required this.situacao,
     required this.recorrencia,
     required this.tpEstimado,
     required this.xp,
@@ -77,9 +78,10 @@ class Atividade {
   factory Atividade.fromJson(Map<String, dynamic> json) {
     return Atividade(
       id: json['idatividade'] ?? 0,
-      nome: json['nmatividade'] ?? 'Atividade sem nome',
+      nome: json['nmatividade'] ?? '',
       descricao: json['dsatividade'] ?? '',
-      dificuldade: json['dificuldade'] ?? 'medio',
+      dificuldade: json['dificuldade'] ?? 'facil',
+      situacao: json['situacao'] ?? 'ativa',
       recorrencia: json['recorrencia'] ?? 'unica',
       tpEstimado: json['tpestimado'] ?? 0,
       xp: json['expatividade'] ?? 0,
@@ -118,7 +120,6 @@ class DesafioPendente {
   }
 }
 
-
 // Modelo para as conquistas
 class Conquista {
   final int id;
@@ -137,9 +138,8 @@ class Conquista {
     Map<String, dynamic> json, {
     bool desbloqueada = false,
   }) {
-    final conquistaData = json.containsKey('conquista')
-        ? json['conquista']
-        : json;
+    final conquistaData =
+        json.containsKey('conquista') ? json['conquista'] : json;
 
     return Conquista(
       id: conquistaData['idconquista'] ?? 0,
