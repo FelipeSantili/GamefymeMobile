@@ -108,7 +108,7 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'gamefyme',
         'USER': 'postgres',
         'PASSWORD': 'ifpr',
         'HOST': 'localhost',
@@ -141,7 +141,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 

@@ -59,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _notificacoes = results[4] as List<Notificacao>;
         _screenState = ScreenState.loaded;
       });
-      // Linha de debug para verificar os dados recebidos da API
-      debugPrint('Dados de Streak Recebidos: ${_usuario?.streakData.map((e) => e.imagem).toList()}');
+      debugPrint(
+          'Dados de Streak Recebidos: ${_usuario?.streakData.map((e) => e.imagem).toList()}');
     } catch (e) {
       debugPrint('Erro ao carregar dados da home: $e');
       if (!mounted) return;
@@ -270,30 +270,27 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList();
 
         return SliverPadding(
-          padding: const EdgeInsets.all(16.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildUserInfoCard(_usuario!),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildAchievementsCard(_conquistas),
-                        const SizedBox(height: 16),
-                        _buildStreakCard(_usuario!.streakData),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildChallengesAndActivitiesSection(filteredActivities),
-            ]),
-          ),
-        );
+        padding: const EdgeInsets.all(16.0),
+        sliver: SliverList(
+          delegate: SliverChildListDelegate([
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildUserInfoCard(_usuario!),
+                const SizedBox(width: 16),
+                Expanded(child: _buildAchievementsCard(_conquistas)),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildStreakCard(_usuario!),
+
+            const SizedBox(height: 16),
+            _buildChallengesAndActivitiesSection(filteredActivities),
+          ]),
+        ),
+      );
     }
   }
 
@@ -310,7 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildPopupMenuItem(text: 'Desafios', value: 'desafios'),
         _buildPopupMenuItem(text: 'Conquistas', value: 'conquistas'),
         _buildPopupMenuItem(text: 'Atividades', value: 'atividades'),
-        const PopupMenuDivider(height: 1, color: AppColors.cinzaSub),
         _buildPopupMenuItem(text: 'Sair', value: 'sair'),
       ],
       child: UserLevelAvatar(user: user, radius: 24),
@@ -343,39 +339,55 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUserInfoCard(Usuario user) {
-    return Container(
-      width: 150,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.fundoCard,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: GestureDetector(
-        onTap: _showAvatarModal,
-        child: CircleAvatar(
-          radius: 50,
-          backgroundColor: AppColors.roxoProfundo,
-          child: CircleAvatar(
-            radius: 46,
-            backgroundImage: AssetImage(
-              "assets/avatares/${user.imagemPerfil}",
-            ),
-            onBackgroundImageError: (_, __) {},
-          ),
-        ),
-      ),
-    );
-  }
-
- Widget _buildAchievementsCard(List<Conquista> conquistas) {
   return Container(
-    padding: const EdgeInsets.all(8),
+    width: 150,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.fundoCard,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: GestureDetector(
+      onTap: _showAvatarModal,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: AppColors.roxoProfundo,
+            child: CircleAvatar(
+              radius: 46,
+              backgroundImage: AssetImage(
+                "assets/avatares/${user.imagemPerfil}",
+              ),
+              onBackgroundImageError: (_, __) {},
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            user.nome,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.branco,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+  Widget _buildAchievementsCard(List<Conquista> conquistas) {
+  return Container(
+    padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: AppColors.fundoCard,
       borderRadius: BorderRadius.circular(10),
     ),
     child: Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Center(
           child: Text(
@@ -387,89 +399,118 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: conquistas
-              .map(
-                (c) => Image.asset(
-                  "assets/conquistas/${c.imagem}",
-                  width: 24,
-                  height: 24,
-                ),
-              )
-              .toList(),
+        const SizedBox(height: 12),
+        // Linha de conquistas (wrap caso extrapole)
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.start,
+          children: conquistas.take(10).map((c) {
+            return SizedBox(
+              width: 40,
+              height: 40,
+              child: Image.asset(
+                "assets/conquistas/${c.imagem}",
+                fit: BoxFit.contain,
+              ),
+            );
+          }).toList(),
         ),
+        // Se quiser espaço para descrição ou contagem
+        if (conquistas.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            '${conquistas.length} conquistas',
+            style: const TextStyle(color: AppColors.cinzaSub, fontSize: 12),
+          ),
+        ],
       ],
     ),
   );
 }
 
-  Widget _buildStreakCard(List<StreakDia> streakData) {
-  const ordemSemana = [
-    "Dom",
-    "Seg",
-    "Ter",
-    "Qua",
-    "Qui",
-    "Sex",
-    "Sáb",
-  ];
-
-  final streakOrdenado = ordemSemana.map((dia) {
-    return streakData.firstWhere(
-      (s) => s.diaSemana == dia,
-      orElse: () => StreakDia(diaSemana: dia, imagem: "fogo-inativo.png"),
-    );
-  }).toList();
+ Widget _buildStreakCard(Usuario usuario) {
+  final double progress = usuario.expTotalNivel > 0
+      ? usuario.exp.toDouble() / usuario.expTotalNivel.toDouble()
+      : 0;
 
   return Container(
-    height: 103,
-    padding: const EdgeInsets.all(8),
+    width: double.infinity,
+    padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: AppColors.fundoCard,
       borderRadius: BorderRadius.circular(10),
     ),
     child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Center(
-          child: Text(
-            "Dias contínuos de atividades",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        const Text(
+          "Dias contínuos de atividades",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.branco,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: streakOrdenado.map(
-            (dia) => Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: usuario.streakData.map((dia) {
+            return Column(
               children: [
                 Text(
                   dia.diaSemana,
                   style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.cinzaSub,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.branco,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Image.asset("assets/images/${dia.imagem}", width: 20),
+                const SizedBox(height: 8),
+                Image.asset(
+                  'assets/images/${dia.imagem}',
+                  width: 28,
+                  height: 28,
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+        // Barra de XP
+        Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${usuario.exp} XP',
+                  style: const TextStyle(
+                      color: AppColors.branco, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Nível ${usuario.nivel}',
+                  style: const TextStyle(
+                      color: AppColors.branco, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${usuario.expTotalNivel} XP',
+                  style: const TextStyle(
+                      color: AppColors.branco, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
-          ).toList(),
-        ),
-        const Spacer(),
-        LinearProgressIndicator(
-          value: streakOrdenado
-                  .where((d) => d.imagem != 'fogo-inativo.png')
-                  .length /
-              7,
-          backgroundColor: AppColors.roxoProfundo,
-          valueColor: const AlwaysStoppedAnimation<Color>(
-            AppColors.roxoClaro,
-          ),
-          minHeight: 6,
-          borderRadius: BorderRadius.circular(3),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.roxoProfundo,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.verdeLima),
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ],
         ),
       ],
     ),
@@ -505,68 +546,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDesafioCard(DesafioPendente desafio) {
-  double progresso = desafio.progresso / max(1, desafio.meta);
-  return Container(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(
-      color: AppColors.cinzaSub, // <--- aqui
-      borderRadius: BorderRadius.circular(5), // <--- aqui
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                desafio.nome,
-                style: const TextStyle(
-                  color: AppColors.branco,
-                  fontWeight: FontWeight.bold,
+    double progresso = desafio.progresso / max(1, desafio.meta);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.cinzaSub,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  desafio.nome,
+                  style: const TextStyle(
+                    color: AppColors.branco,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      value: progresso,
-                      backgroundColor: AppColors.roxoProfundo,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.amareloClaro,
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: progresso,
+                        backgroundColor: AppColors.roxoProfundo,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.amareloClaro,
+                        ),
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(3),
                       ),
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(3),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "${desafio.progresso}/${desafio.meta}",
-                    style: const TextStyle(
-                      color: AppColors.branco,
-                      fontSize: 12,
+                    const SizedBox(width: 8),
+                    Text(
+                      "${desafio.progresso}/${desafio.meta}",
+                      style: const TextStyle(
+                        color: AppColors.branco,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Text(
-          "${desafio.xp}xp",
-          style: const TextStyle(
-            color: AppColors.amareloClaro,
-            fontWeight: FontWeight.bold,
+          const SizedBox(width: 16),
+          Text(
+            "${desafio.xp}xp",
+            style: const TextStyle(
+              color: AppColors.amareloClaro,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildAtividadesSection(List<Atividade> atividades) {
     return Expanded(
@@ -574,7 +614,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           TextField(
             onChanged: (value) => setState(() => _searchText = value),
-            style: const TextStyle(color: AppColors.branco, fontFamily: 'Jersey 10'),
+            style: const TextStyle(
+                color: AppColors.branco, fontFamily: 'Jersey 10'),
             decoration: InputDecoration(
               hintText: "Nome da atividade",
               hintStyle: const TextStyle(color: AppColors.cinzaSub),
@@ -618,7 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 28,
                         ),
                         onPressed: () async {
-                           final result = await Navigator.push(
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => RealizarAtividadeScreen(
@@ -664,8 +705,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
 
                           if (confirmDelete == true) {
-                            final success = await _apiService
-                                .cancelAtividade(atividade.id);
+                            final success =
+                                await _apiService.cancelAtividade(atividade.id);
                             if (success) {
                               _carregarDados();
                             }

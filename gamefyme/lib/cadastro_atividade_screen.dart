@@ -195,7 +195,7 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
       style: const TextStyle(color: AppColors.branco, fontFamily: 'Jersey 10'),
         decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontFamily: 'Jersey 10'),
+        labelStyle: const TextStyle(fontFamily: 'Jersey 10'),
         suffixText: suffixText,
         alignLabelWithHint: true,
       ),
