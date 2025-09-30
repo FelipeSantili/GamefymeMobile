@@ -306,7 +306,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         }).toList(),
                       ),
                     const SizedBox(height: 12),
-                    const Divider(color: AppColors.roxoProfundo),
                     const SizedBox(height: 8),
                     const Text(
                       "Conquistas",
