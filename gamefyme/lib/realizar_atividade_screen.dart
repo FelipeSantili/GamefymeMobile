@@ -212,6 +212,15 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
   }
 
   Widget _buildActivityStreakSection(BuildContext context) {
+    // Aqui adicionamos a barra de experiência igual à do menu principal abaixo do streak
+    final streakProgressCount =
+        _usuario!.streakData.where((d) => d.imagem != 'fogo-inativo.png').length;
+    final streakFraction = streakProgressCount / 7;
+
+    final double expProgress = _usuario!.expTotalNivel > 0
+        ? _usuario!.exp.toDouble() / _usuario!.expTotalNivel.toDouble()
+        : 0.0;
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -262,10 +271,7 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: LinearProgressIndicator(
-              value: _usuario!.streakData
-                      .where((d) => d.imagem != 'fogo-inativo.png')
-                      .length /
-                  7,
+              value: streakFraction.clamp(0.0, 1.0),
               backgroundColor: AppColors.roxoProfundo,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.roxoClaro),
@@ -273,6 +279,46 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
+
+          // === Nova seção: barra de experiência igual ao menu principal ===
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_usuario!.exp} XP',
+                      style: const TextStyle(
+                          color: AppColors.branco, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Nível ${_usuario!.nivel}',
+                      style: const TextStyle(
+                          color: AppColors.branco, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '${_usuario!.expTotalNivel} XP',
+                      style: const TextStyle(
+                          color: AppColors.branco, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                LinearProgressIndicator(
+                  value: expProgress.clamp(0.0, 1.0),
+                  backgroundColor: AppColors.roxoProfundo,
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.verdeLima),
+                  minHeight: 10,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ],
+            ),
+          ),
+          // === fim da barra de experiência ===
         ],
       ),
     );
@@ -436,4 +482,3 @@ class _RealizarAtividadeScreenState extends State<RealizarAtividadeScreen> {
     );
   }
 }
-

@@ -240,108 +240,114 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildChallengesAchievementsButton() {
-    // botão que abre um popup (igual notificação) com desafios + conquistas
-    return PopupMenuButton<int>(
-      color: AppColors.fundoCard,
-      icon: const Icon(Icons.emoji_events, color: AppColors.verdeLima, size: 30),
-      offset: const Offset(0, 50),
-      itemBuilder: (context) {
-        // retornamos um único PopupMenuItem contendo um container com as duas seções.
-        return [
-          PopupMenuItem<int>(
-            enabled: false,
-            child: Container(
-              width: 320, // largura do menu
-              constraints: const BoxConstraints(maxHeight: 400),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Desafios pendentes",
-                      style: TextStyle(
-                          color: AppColors.branco,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_desafios.isEmpty)
-                      const Text("Nenhum desafio", style: TextStyle(color: AppColors.cinzaSub))
-                    else
-                      Column(
-                        children: _desafios.map((d) {
-                          double progresso = d.progresso / max(1, d.meta);
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.cinzaSub,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(d.nome, style: const TextStyle(color: AppColors.branco, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      LinearProgressIndicator(
-                                        value: progresso,
-                                        backgroundColor: AppColors.roxoProfundo,
-                                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.amareloClaro),
-                                        minHeight: 6,
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    ],
-                                  ),
+  // filtra apenas desafios diários e ordena (ex: por id)
+  final diarios = _desafios
+      .where((d) => d.tipo.trim().toLowerCase() == 'diario')
+      .toList()
+    ..sort((a, b) => a.id.compareTo(b.id));
+
+  return PopupMenuButton<int>(
+    color: AppColors.fundoCard,
+    icon: const Icon(Icons.emoji_events, color: AppColors.verdeLima, size: 30),
+    offset: const Offset(0, 50),
+    itemBuilder: (context) {
+      return [
+        PopupMenuItem<int>(
+          enabled: false,
+          child: Container(
+            width: 320,
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Desafios diários",
+                    style: TextStyle(
+                        color: AppColors.branco,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  if (diarios.isEmpty)
+                    const Text("Nenhum desafio diário", style: TextStyle(color: AppColors.cinzaSub))
+                  else
+                    Column(
+                      children: diarios.map((d) {
+                        double progresso = d.progresso / max(1, d.meta);
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.cinzaSub,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(d.nome, style: const TextStyle(color: AppColors.branco, fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 6),
+                                    LinearProgressIndicator(
+                                      value: progresso,
+                                      backgroundColor: AppColors.roxoProfundo,
+                                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.amareloClaro),
+                                      minHeight: 6,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text("${d.progresso}/${d.meta}", style: const TextStyle(color: AppColors.branco)),
-                                const SizedBox(width: 8),
-                                Text("${d.xp}xp", style: const TextStyle(color: AppColors.amareloClaro, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: 12),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Conquistas",
-                      style: TextStyle(
-                          color: AppColors.branco,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14),
+                              ),
+                              const SizedBox(width: 8),
+                              Text("${d.progresso}/${d.meta}", style: const TextStyle(color: AppColors.branco)),
+                              const SizedBox(width: 8),
+                              Text("${d.xp}xp", style: const TextStyle(color: AppColors.amareloClaro, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
+                  const SizedBox(height: 12),
+                  const Divider(color: AppColors.roxoProfundo),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Conquistas",
+                    style: TextStyle(
+                        color: AppColors.branco,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_conquistas.isEmpty)
+                    const Text("Nenhuma conquista", style: TextStyle(color: AppColors.cinzaSub))
+                  else
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _conquistas.take(20).map((c) {
+                        return SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Image.asset("assets/conquistas/${c.imagem}", fit: BoxFit.contain),
+                        );
+                      }).toList(),
+                    ),
+                  if (_conquistas.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    if (_conquistas.isEmpty)
-                      const Text("Nenhuma conquista", style: TextStyle(color: AppColors.cinzaSub))
-                    else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _conquistas.take(20).map((c) {
-                          return SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: Image.asset("assets/conquistas/${c.imagem}", fit: BoxFit.contain),
-                          );
-                        }).toList(),
-                      ),
-                    if (_conquistas.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text('${_conquistas.length} conquistas', style: const TextStyle(color: AppColors.cinzaSub)),
-                    ],
+                    Text('${_conquistas.length} conquistas', style: const TextStyle(color: AppColors.cinzaSub)),
                   ],
-                ),
+                ],
               ),
             ),
           ),
-        ];
-      },
-    );
-  }
+        ),
+      ];
+    },
+  );
+}
+
 
   Widget _buildBody() {
     switch (_screenState) {

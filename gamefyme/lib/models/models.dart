@@ -88,13 +88,14 @@ class Atividade {
   }
 }
 
-// Modelo para os desafios pendentes
+// Modelo para os desafios pendentes (atualizado para incluir tipo)
 class DesafioPendente {
   final int id;
   final String nome;
   final int progresso;
   final int meta;
   final int xp;
+  final String tipo; // 'diario', 'semanal', 'mensal', 'unico'
 
   DesafioPendente({
     required this.id,
@@ -102,6 +103,7 @@ class DesafioPendente {
     required this.progresso,
     required this.meta,
     required this.xp,
+    required this.tipo,
   });
 
   factory DesafioPendente.fromJson(Map<String, dynamic> json) {
@@ -111,9 +113,11 @@ class DesafioPendente {
       progresso: json['progresso_atual'] ?? 0,
       meta: json['parametro'] ?? 1,
       xp: json['expdesafio'] ?? 0,
+      tipo: (json['tipo'] ?? '').toString().trim().toLowerCase(),
     );
   }
 }
+
 
 // Modelo para as conquistas
 class Conquista {
