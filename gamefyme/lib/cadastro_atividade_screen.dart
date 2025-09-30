@@ -79,8 +79,7 @@ class _CadastroAtividadeScreenState extends State<CadastroAtividadeScreen> {
     return Scaffold(
       backgroundColor: AppColors.fundoEscuro,
       appBar: AppBar(
-        title: const Text('CADASTRAR ATIVIDADE'),
-        backgroundColor: AppColors.fundoEscuro,
+        backgroundColor: AppColors.branco,
         elevation: 0,
         // BOTÃO DE VOLTAR ADICIONADO AQUI
         leading: IconButton(

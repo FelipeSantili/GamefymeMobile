@@ -76,6 +76,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _showNotificationDetails(Notificacao notificacao) async {
+    // Marcar a notificação como lida na API
+    await _apiService.marcarNotificacaoComoLida(notificacao.id);
+
+    // Atualizar o estado local da notificação para que ela apareça como lida sem recarregar a tela
+    setState(() {
+      final index = _notificacoes.indexWhere((n) => n.id == notificacao.id);
+      if (index != -1) {
+        _notificacoes[index] = Notificacao(
+          id: notificacao.id,
+          mensagem: notificacao.mensagem,
+          tipo: notificacao.tipo,
+          lida: true, // Marcar como lida
+        );
+      }
+    });
+
+    // Mostrar o modal
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.fundoCard,
+          title: Text(
+            'Notificação',
+            style: TextStyle(color: AppColors.branco),
+          ),
+          content: Text(
+            notificacao.mensagem,
+            style: TextStyle(color: AppColors.branco),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Fechar',
+                style: TextStyle(color: AppColors.verdeLima),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _handleMenuSelection(String value) {
     if (value == 'sair') {
       _authService.logout();
@@ -174,10 +221,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildNotificationButton(int naoLidas) {
-    return PopupMenuButton<int>(
-      onSelected: (id) async {
-        await _apiService.marcarNotificacaoComoLida(id);
-        _carregarDados();
+    return PopupMenuButton<Notificacao>(
+      onSelected: (notificacao) {
+        _showNotificationDetails(notificacao);
       },
       color: AppColors.fundoCard,
       icon: Stack(
@@ -220,8 +266,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ];
         }
         return _notificacoes.map((notificacao) {
-          return PopupMenuItem<int>(
-            value: notificacao.id,
+          return PopupMenuItem<Notificacao>(
+            value: notificacao,
             child: ListTile(
               leading: Icon(
                 notificacao.lida
@@ -254,8 +300,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return PopupMenuButton<int>(
       color: AppColors.fundoCard,
-      icon: const Icon(Icons.emoji_events,
-          color: AppColors.verdeLima, size: 30),
+      icon:
+          const Icon(Icons.emoji_events, color: AppColors.verdeLima, size: 30),
       offset: const Offset(0, 50),
       itemBuilder: (context) {
         return [
@@ -403,33 +449,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         );
       case ScreenState.loaded:
-        const double cardHeight = 220;
-
-        return SliverPadding(
-          padding: const EdgeInsets.all(16.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 150,
-                    height: cardHeight,
-                    child: _buildUserInfoCard(_usuario!),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: SizedBox(
-                      height: cardHeight,
-                      child: _buildStreakCard(_usuario!),
+        if (_usuario == null) {
+          return const SliverFillRemaining(
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.verdeLima),
+            ),
+          );
+        }
+        // Use SliverToBoxAdapter to place a regular widget inside the CustomScrollView.
+        return SliverToBoxAdapter(
+          child: Container(
+            // Calculate height to fill the screen minus app bar and status bar.
+            height: MediaQuery.of(context).size.height -
+                kToolbarHeight -
+                MediaQuery.of(context).padding.top,
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Top section with user cards (fixed height)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      height: 220,
+                      child: _buildUserInfoCard(_usuario!),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildAtividadesSection(),
-            ]),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 220,
+                        child: _buildStreakCard(_usuario!),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Activities section expands to fill the remaining space
+                Expanded(
+                  child: _buildAtividadesSection(),
+                ),
+              ],
+            ),
           ),
         );
     }
@@ -626,7 +687,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .toList();
 
     return Container(
-      height: 400,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.fundoCard,
@@ -637,13 +697,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           TextField(
             onChanged: (value) => setState(() => _searchText = value),
-            style: const TextStyle(
-                color: AppColors.branco, fontFamily: 'Jersey 10'),
+            style:
+                const TextStyle(color: AppColors.branco, fontFamily: 'Jersey 10'),
             decoration: InputDecoration(
               hintText: "Nome da atividade",
               hintStyle: const TextStyle(color: AppColors.cinzaSub),
-              prefixIcon:
-                  const Icon(Icons.search, color: AppColors.cinzaSub),
+              prefixIcon: const Icon(Icons.search, color: AppColors.cinzaSub),
               filled: true,
               fillColor: const Color(0xFFD9D9D9),
               border: OutlineInputBorder(
@@ -691,7 +750,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     return ListView.builder(
-      shrinkWrap: true,
       itemCount: atividades.length,
       itemBuilder: (context, index) {
         final atividade = atividades[index];
