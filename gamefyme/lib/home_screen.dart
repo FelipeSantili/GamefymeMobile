@@ -99,17 +99,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.fundoCard,
-          title: Text(
+          title: const Text(
             'Notificação',
             style: TextStyle(color: AppColors.branco),
           ),
           content: Text(
             notificacao.mensagem,
-            style: TextStyle(color: AppColors.branco),
+            style: const TextStyle(color: AppColors.branco),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text(
+              child: const Text(
                 'Fechar',
                 style: TextStyle(color: AppColors.verdeLima),
               ),
